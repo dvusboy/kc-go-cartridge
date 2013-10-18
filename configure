@@ -1,0 +1,133 @@
+#!/bin/sh
+
+this_prog=`basename $0`
+DEFAULT_DIST='.pps'
+DIST=
+
+usage()
+{
+cat <<HELP
+Usage: $1 [-h|--help]
+
+Options:
+    -h, --help  : print this message
+
+Parameters:
+    --dist=DIST : specify the distribution (defaults to '$DEFAULT_DIST')
+HELP
+}
+
+version()
+{
+    description=$(git describe --always HEAD)
+    version=$(echo $description | cut -d'-' -f1)
+    release=$(echo $description | cut -d'-' -f2)
+    if [ "$release" = "$version" ]; then
+	# We are either at a tag or we don't have any tag yet
+	# Check to see if $version has '.'
+	if [ ${version%%.*} = "$version" ]; then
+	    # We don't have . in $version
+	    echo "0.0-1"
+	else
+	    # We are at a tag
+	    echo "$version-1"
+	fi
+    else
+	release=$((release+1))
+	echo "${version}-$release"
+    fi
+}
+
+parse_args()
+{
+    local prev
+    local optarg
+    local opt
+
+    for opt; do
+	if [ -n "$prev" ]; then
+	    eval "$prev=\$opt"
+	    prev=
+	    continue
+	fi
+
+	optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+	case "$opt" in
+	    -h | --h | -help | --help)
+		usage $this_prog
+		exit ;;
+	    -dist | --dist)
+		prev=DIST
+		;;
+	    -dist=* | --dist=*)
+		DIST=$optarg
+		;;
+	    -*)
+		cat <<EOF
+Error: unrecognized option $opt
+Try $this_prog --help for more information.
+
+EOF
+		exit 2 ;;
+	esac
+    done
+
+    VERSION=$(version | cut -d'-' -f1)
+    RELEASE=$(version | cut -d'-' -f2)
+    [ -n "$DIST" ] || DIST=$DEFAULT_DIST
+
+    echo "VERSION=$VERSION"
+    echo "RELEASE=$RELEASE"
+    echo "DIST=$DIST"
+}
+
+replace()
+{
+    local key
+    local prev
+    local opt
+    local optarg
+    local script="sed"
+    local input
+
+    for opt; do
+	if [ -n "$prev" ]; then
+	    script="$script -e 's,@$prev@,$opt,g'"
+	    prev=
+	    continue
+	fi
+
+	optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+	case "$opt" in
+	    --*=*)
+		key=${opt#--}
+		key=${key%%=*}
+		script="$script -e 's,@$key@,$optarg,g'"
+		;;
+	    *)
+		if [ -z "$input" ]; then
+		    input=$opt
+		else
+		    input="$input $opt"
+		fi
+		;;
+	esac
+    done
+
+    echo "input=$input"
+    if [ "$script" != "sed" ]; then
+	for f in $input; do
+	    echo "Processing $f..."
+	    cat $f | eval "$script" > ${f%.*}
+	done
+    else
+	echo "Nothing to be done for replace()"
+    fi
+    return 0
+}
+
+parse_args $@
+replace --VERSION=$VERSION \
+    --RELEASE=$RELEASE \
+    --DIST=$DIST \
+    $(find . -type f -name '*.in')

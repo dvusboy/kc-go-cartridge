@@ -2,10 +2,10 @@ Name: go
 Cartridge-Short-Name: GO
 Display-Name: Go 1.1
 Version: "1.1"
-Versions: ["1.1", "1.0.3"]
-Website: https://github.com/smarterclayton/openshift-go-cart
+Versions: ["1.1"]
+Website: https://github.paypal.com/kcwong/openshift-go-cart
 Cartridge-Version: 0.0.1
-Cartridge-Vendor: smarterclayton
+Cartridge-Vendor: paypal
 Categories:
   - service
   - golang

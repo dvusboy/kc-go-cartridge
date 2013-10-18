@@ -1,0 +1,34 @@
+TOPDIR  := build
+DIRS    := RPMS SRPMS SPECS SOURCES BUILD
+RPM_D    = $(patsubst %,$(TOPDIR)/%,$(DIRS))
+SPEC    := openshift-go-cart.spec
+VERSION := @VERSION@
+RELEASE := @RELEASE@
+PWD     := $(shell pwd)
+DIST    := @DIST@
+
+ifeq ($(DIST),)
+  RPMBUILD_DEFS := --define='_topdir $(PWD)/$(TOPDIR)'
+else
+  RPMBUILD_DEFS := --define='_topdir $(PWD)/$(TOPDIR)' --define='dist $(DIST)'
+endif
+
+.PHONY : rpm
+rpm : $(SPEC) dist
+	cp $(SPEC) $(TOPDIR)/SPECS
+	rpmbuild -bb -v $(RPMBUILD_DEFS) $(TOPDIR)/SPECS/$(SPEC)
+
+$(TOPDIR) :
+	mkdir $@
+
+$(RPM_D) : $(TOPDIR)
+	mkdir $@
+
+.PHONY : dist
+dist : $(RPM_D)
+	git ls-files --cached | egrep -v '.*\.in$$' | egrep -v 'configure' | tar -zcf $(TOPDIR)/SOURCES/openshift-go-cart-$(VERSION).tar.gz -T -
+
+.PHONY : clean
+clean :
+	rm -rf $(TOPDIR)
+	git clean -fdx

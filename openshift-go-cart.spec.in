@@ -1,0 +1,52 @@
+%global cartridgedir %{_libexecdir}/openshift/cartridges/v2/go
+%define release @RELEASE@
+
+Name:          openshift-go-cart
+Version:       @VERSION@
+Release:       %{release}%{?dist}
+Summary:       Python cartridge
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://github.paypal.com/kcwong/openshift-go-cart/
+Source:	       openshift-go-cart-%{version}.tar.gz
+Requires:      facter
+Requires:      rubygem(openshift-origin-node)
+Requires:      openshift-origin-node-util
+Requires:      golang >= 1.1
+Requires:      httpd
+Requires:      redhat-lsb-core
+Requires:      symlinks
+# These 2 requirements are for support of downloading additional
+# go modules
+Requires:      mercurial
+Requires:      bzr
+BuildArch:     noarch
+
+%description
+Go cartridge for OpenShift. (Cartridge Format V2)
+
+
+%prep
+%setup -c -n %{name}-%{version}-%{release}
+
+%build
+
+%install
+%__mkdir -p %{buildroot}%{cartridgedir}
+%__cp -r * %{buildroot}%{cartridgedir}
+
+%__mkdir -p %{buildroot}%{cartridgedir}/env
+
+%files
+%dir %{cartridgedir}
+%attr(0755,-,-) %{cartridgedir}/bin/
+%{cartridgedir}
+%doc %{cartridgedir}/README.md
+%doc %{cartridgedir}/LICENSE
+
+%post
+%{_sbindir}/oo-admin-cartridge --action install --source %{cartridgedir}
+
+%changelog
+* Thu Oct 17 2013 K.C. Wong <kcwong@paypal.com>
+- Genesis
