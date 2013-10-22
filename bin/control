@@ -25,6 +25,12 @@ function status() {
 
 function start() {
     logf="$OPENSHIFT_GO_DIR/logs/go.log"
+
+    if is_go_service_running; then
+	echo "`date +"$FMT"`: Application '$OPENSHIFT_APP_NAME' already running; ignoring start()" >> $logf
+	return 0
+    fi
+
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null
     {
         godir=$(cat .godir)
