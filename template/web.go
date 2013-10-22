@@ -9,7 +9,7 @@ import (
 func main() {
   http.HandleFunc("/", hello)
   fmt.Println("listening...")
-  err := http.ListenAndServe(os.Getenv("HOST")+":"+os.Getenv("PORT"), nil)
+  err := http.ListenAndServe(os.Getenv("OPENSHIFT_GO_IP")+":"+os.Getenv("OPENSHIFT_GO_PORT"), nil)
   if err != nil {
     panic(err)
   }
