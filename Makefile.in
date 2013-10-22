@@ -22,7 +22,7 @@ $(TOPDIR) :
 	mkdir $@
 
 $(RPM_D) : $(TOPDIR)
-	mkdir $@
+	mkdir -p $@
 
 .PHONY : dist
 dist : $(RPM_D)
